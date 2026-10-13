@@ -462,6 +462,9 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 
   Widget buildHelpCards(String updateUrl) {
+    // --- НАЧАЛО ВСТАВКИ ---
+    // Отключаем все системные карточки RustDesk (установка, обновление, ошибки)
+    return const SizedBox.shrink();
     if (!bind.isCustomClient() &&
         updateUrl.isNotEmpty &&
         !isCardClosed &&
