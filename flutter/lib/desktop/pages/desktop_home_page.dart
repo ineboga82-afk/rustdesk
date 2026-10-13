@@ -111,6 +111,29 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           }
         },
       ),
+      // --- НАЧАЛО ВСТАВКИ БАННЕРА ---
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0, left: 16.0, right: 16.0, bottom: 20.0),
+            child: GestureDetector(
+              onTap: () {
+                launchUrl(Uri.parse('https://xn----7sbhjnih6b1d2d.xn--p1ai'));
+              },
+              child: Image.network(
+                'https://xn----7sbhjnih6b1d2d.xn--p1ai/static/bannerrust.png',
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) {
+                  // Если картинка не загрузится, появится текст, а не пустое место
+                  return const Center(
+                    child: Text(
+                      'Не удалось загрузить баннер', 
+                      style: TextStyle(color: Colors.red),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+          // --- КОНЕЦ ВСТАВКИ ---
     ];
     if (isIncomingOnly) {
       children.addAll([
@@ -389,23 +412,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
               ),
             ),
           ),
-          // --- НАЧАЛО ВСТАВКИ БАННЕРА ---
-          GestureDetector(
-            onTap: () {
-              launchUrl(Uri.parse('https://xn----7sbhjnih6b1d2d.xn--p1ai'));
-            },
-            child: Container(
-              margin: const EdgeInsets.only(top: 25.0),
-              width: double.infinity,
-              child: Image.network(
-                'https://xn----7sbhjnih6b1d2d.xn--p1ai/static/bannerrust.png',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) =>
-                    const SizedBox.shrink(),
-              ),
-            ),
-          ),
-          // --- КОНЕЦ ВСТАВКИ ---
+          
         ],
       ),
     );
