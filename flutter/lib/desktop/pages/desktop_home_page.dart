@@ -114,22 +114,24 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       // --- НАЧАЛО ВСТАВКИ БАННЕРА ---
           Padding(
             padding: const EdgeInsets.only(top: 20.0, left: 16.0, right: 16.0, bottom: 20.0),
-            child: GestureDetector(
-              onTap: () {
-                launchUrl(Uri.parse('https://xn----7sbhjnih6b1d2d.xn--p1ai'));
-              },
-              child: Image.network(
-                'https://xn----7sbhjnih6b1d2d.xn--p1ai/static/bannerrust.png',
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) {
-                  // Если картинка не загрузится, появится текст, а не пустое место
-                  return const Center(
-                    child: Text(
-                      'Не удалось загрузить баннер', 
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  );
+            child: MouseRegion(
+              cursor: SystemMouseCursors.click, // Меняет курсор на "руку" при наведении
+              child: GestureDetector(
+                onTap: () {
+                  launchUrl(Uri.parse('https://xn----7sbhjnih6b1d2d.xn--p1ai'));
                 },
+                child: Image.network(
+                  'https://xn----7sbhjnih6b1d2d.xn--p1ai/static/bannerrust.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Text(
+                        'Не удалось загрузить баннер', 
+                        style: TextStyle(color: Colors.red),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
