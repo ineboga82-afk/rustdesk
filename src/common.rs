@@ -2506,7 +2506,35 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
     ThrottledInterval::new(i)
 }
 
+// JoBox Support: built-in client settings, applied the same way as a custom.txt
+// (but without the RustDesk signature check). Keep "app-name" without spaces:
+// Windows service commands (sc create/stop, taskkill) use it unquoted.
+const JOBOX_CLIENT_CONFIG: &str = r#"{
+    "app-name": "JoBoxSupport",
+    "override-settings": {
+        "custom-rendezvous-server": "194.67.127.135",
+        "key": "8G+DEypk5r08WN7fXFiA9mmO3pWi3NeNoZ35m2qAhKE=",
+        "approve-mode": "click",
+        "enable-check-update": "N",
+        "allow-auto-update": "N"
+    },
+    "default-settings": {
+        "hide-server-settings": "Y",
+        "hide-proxy-settings": "Y",
+        "hide-websocket-settings": "Y",
+        "hide-help-cards": "Y"
+    }
+}"#;
+
+fn load_jobox_client() {
+    match serde_json::from_str::<HashMap<String, serde_json::Value>>(JOBOX_CLIENT_CONFIG) {
+        Ok(data) => apply_custom_client_data(data),
+        Err(e) => log::error!("Failed to parse JoBox client config: {e}"),
+    }
+}
+
 pub fn load_custom_client() {
+    load_jobox_client();
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());
@@ -2618,13 +2646,16 @@ pub fn read_custom_client(config: &str) {
         log::error!("Failed to dec custom client config");
         return;
     };
-    let Ok(mut data) =
+    let Ok(data) =
         serde_json::from_slice::<std::collections::HashMap<String, serde_json::Value>>(&data)
     else {
         log::error!("Failed to parse custom client config");
         return;
     };
+    apply_custom_client_data(data);
+}
 
+fn apply_custom_client_data(mut data: HashMap<String, serde_json::Value>) {
     if let Some(app_name) = data.remove("app-name") {
         if let Some(app_name) = app_name.as_str() {
             *config::APP_NAME.write().unwrap() = app_name.to_owned();

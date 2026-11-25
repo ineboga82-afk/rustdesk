@@ -110,6 +110,25 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           }
         },
       ),
+      // JoBox Support: clickable banner with a link to the JoBox site.
+      Padding(
+        padding: const EdgeInsets.only(
+            top: 20.0, left: 16.0, right: 16.0, bottom: 20.0),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () {
+              launchUrl(Uri.parse('https://xn----7sbhjnih6b1d2d.xn--p1ai'));
+            },
+            child: Image.network(
+              'https://xn----7sbhjnih6b1d2d.xn--p1ai/static/bannerrust.png',
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) =>
+                  const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      ),
     ];
     if (isIncomingOnly) {
       children.addAll([
