@@ -2509,16 +2509,19 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
 // JoBox Support: built-in client settings, applied the same way as a custom.txt
 // (but without the RustDesk signature check). Keep "app-name" without spaces:
 // Windows service commands (sc create/stop, taskkill) use it unquoted.
+// "approve-mode" is a default (not an override): clients accept sessions by click,
+// on Ivan's own computers password access can be enabled in Settings -> Security
+// (unlocking that page needs administrator rights).
 const JOBOX_CLIENT_CONFIG: &str = r#"{
     "app-name": "JoBoxSupport",
     "override-settings": {
         "custom-rendezvous-server": "194.67.127.135",
         "key": "8G+DEypk5r08WN7fXFiA9mmO3pWi3NeNoZ35m2qAhKE=",
-        "approve-mode": "click",
         "enable-check-update": "N",
         "allow-auto-update": "N"
     },
     "default-settings": {
+        "approve-mode": "click",
         "hide-server-settings": "Y",
         "hide-proxy-settings": "Y",
         "hide-websocket-settings": "Y",

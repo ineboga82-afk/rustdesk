@@ -50,6 +50,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   Timer? _updateTimer;
   bool isCardClosed = false;
 
+  // JoBox Support: own update check (section "jbsupport" of update_jobox.json).
+  Timer? _joboxUpdateTimer;
+  final RxString _joboxNewVersion = ''.obs;
+  final RxString _joboxUpdateNotes = ''.obs;
+  // '' | 'downloading' | 'started' | 'error:<text>'
+  final RxString _joboxUpdateStatus = ''.obs;
+
   final RxBool _editHover = false.obs;
   final RxBool _block = false.obs;
 
@@ -110,6 +117,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           }
         },
       ),
+      buildJoBoxUpdateCard(),
       // JoBox Support: clickable banner with a link to the JoBox site.
       Padding(
         padding: const EdgeInsets.only(
@@ -594,6 +602,103 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     return Container();
   }
 
+  Future<void> _joboxCheckUpdate() async {
+    final status = _joboxUpdateStatus.value;
+    if (status == 'downloading' || status == 'started') return;
+    final res = await bind.mainGetCommon(key: 'jobox-check-update');
+    if (res.isEmpty) {
+      _joboxNewVersion.value = '';
+      return;
+    }
+    try {
+      final m = jsonDecode(res) as Map<String, dynamic>;
+      _joboxUpdateNotes.value = (m['notes'] ?? '').toString();
+      _joboxNewVersion.value = (m['version'] ?? '').toString();
+    } catch (e) {
+      debugPrint('JoBox update check: $e');
+    }
+  }
+
+  Future<void> _joboxDoUpdate() async {
+    _joboxUpdateStatus.value = 'downloading';
+    final res = await bind.mainGetCommon(key: 'jobox-do-update');
+    _joboxUpdateStatus.value = res.isEmpty ? 'started' : res;
+  }
+
+  Widget buildJoBoxUpdateCard() {
+    return Obx(() {
+      final version = _joboxNewVersion.value;
+      if (version.isEmpty) return const SizedBox.shrink();
+      final status = _joboxUpdateStatus.value;
+      final notes = _joboxUpdateNotes.value;
+      String text;
+      if (status == 'downloading') {
+        text = 'Скачиваю обновление $version...';
+      } else if (status == 'started') {
+        text = 'Устанавливаю обновление. '
+            'Программа закроется и откроется заново.';
+      } else if (status == 'error:cancelled') {
+        text = 'Обновление отменено. Нажмите «Обновить» ещё раз '
+            'и на вопрос Windows ответьте «Да».';
+      } else if (status.startsWith('error')) {
+        text = 'Не удалось обновить. Попробуйте позже '
+            'или скачайте установщик на сайте ячейка-пвз.рф';
+      } else {
+        text = 'Доступна новая версия JoBox Support $version';
+      }
+      final showButton = status.isEmpty || status.startsWith('error');
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 20),
+        padding: const EdgeInsets.all(14),
+        decoration: const BoxDecoration(
+            gradient: LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            Color.fromARGB(255, 226, 66, 188),
+            Color.fromARGB(255, 244, 114, 124),
+          ],
+        )),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(text,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    height: 1.4)),
+            if (status.isEmpty && notes.isNotEmpty)
+              Text(notes,
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 12, height: 1.4))
+                  .marginOnly(top: 6),
+            if (status == 'downloading')
+              const LinearProgressIndicator(
+                color: Colors.white,
+                backgroundColor: Colors.white30,
+              ).marginOnly(top: 12),
+            if (showButton)
+              Center(
+                child: FixedWidthButton(
+                  width: 150,
+                  padding: 8,
+                  isOutline: true,
+                  text: 'Обновить',
+                  textColor: Colors.white,
+                  borderColor: Colors.white,
+                  textSize: 18,
+                  radius: 10,
+                  onTap: _joboxDoUpdate,
+                ),
+              ).marginOnly(top: 12),
+          ],
+        ),
+      );
+    });
+  }
+
   Widget buildInstallCard(String title, String content, String btnText,
       GestureTapCallback onPressed,
       {double marginTop = 20.0,
@@ -718,6 +823,11 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   @override
   void initState() {
     super.initState();
+    if (isWindows) {
+      _joboxCheckUpdate();
+      _joboxUpdateTimer = Timer.periodic(
+          const Duration(hours: 6), (_) => _joboxCheckUpdate());
+    }
     _updateTimer = periodic_immediate(const Duration(seconds: 1), () async {
       await gFFI.serverModel.fetchID();
       final error = await bind.mainGetError();
@@ -894,6 +1004,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
     _uniLinksSubscription?.cancel();
     Get.delete<RxBool>(tag: 'stop-service');
     _updateTimer?.cancel();
+    _joboxUpdateTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

@@ -2763,6 +2763,18 @@ pub fn main_get_printer_names() -> SyncReturn<String> {
 }
 
 pub fn main_get_common(key: String) -> String {
+    // JoBox Support: own update check. These keys do network requests, so Dart
+    // must call them through the asynchronous `mainGetCommon`, not the sync one.
+    #[cfg(target_os = "windows")]
+    {
+        if key == "jobox-check-update" {
+            return crate::jobox_update::check();
+        } else if key == "jobox-do-update" {
+            return crate::jobox_update::download_and_run();
+        } else if key == "jobox-version" {
+            return crate::jobox_update::installed_version().unwrap_or_default();
+        }
+    }
     if key == "is-printer-installed" {
         #[cfg(target_os = "windows")]
         {
@@ -2844,7 +2856,10 @@ pub fn main_get_common_sync(key: String) -> SyncReturn<String> {
     }
     // Metadata verification performs blocking network requests. Keep this key on
     // the asynchronous FFI path to avoid blocking the calling Flutter isolate.
-    if key.starts_with("verified-download-url-") {
+    if key.starts_with("verified-download-url-")
+        || key == "jobox-check-update"
+        || key == "jobox-do-update"
+    {
         return SyncReturn("error:unsupported".to_owned());
     }
     SyncReturn(main_get_common(key))

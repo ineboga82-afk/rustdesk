@@ -2578,7 +2578,10 @@ class _AboutState extends State<_About> {
       final buildDate = await bind.mainGetBuildDate();
       final fingerprint = await bind.mainGetFingerprint();
       final myId = await bind.mainGetMyId();
+      // JoBox Support: version of the JoBox installer (empty when not installed).
+      final joboxVersion = await bind.mainGetCommon(key: 'jobox-version');
       return {
+        'joboxVersion': joboxVersion,
         'license': license,
         'version': version,
         'buildDate': buildDate,
@@ -2591,6 +2594,7 @@ class _AboutState extends State<_About> {
       final buildDate = data['buildDate'].toString();
       final fingerprint = data['fingerprint'].toString();
       final myId = data['myId'].toString();
+      final joboxVersion = data['joboxVersion'].toString();
       const linkStyle = TextStyle(decoration: TextDecoration.underline);
       final scrollController = ScrollController();
       return SingleChildScrollView(
@@ -2602,6 +2606,10 @@ class _AboutState extends State<_About> {
               const SizedBox(
                 height: 8.0,
               ),
+              if (joboxVersion.isNotEmpty)
+                SelectionArea(
+                    child: Text('JoBox Support: $joboxVersion')
+                        .marginSymmetric(vertical: 4.0)),
               SelectionArea(
                   child: Text('${translate('Version')}: $version')
                       .marginSymmetric(vertical: 4.0)),
