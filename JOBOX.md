@@ -7,6 +7,8 @@ Branded RustDesk client for JoBox remote support (Windows 10/11 x64).
   (app name `JoBoxSupport`, JoBox server and key locked; by default a session starts
   only after the client clicks Accept, password access can be enabled in
   Settings -> Security, which needs administrator rights to unlock).
+  `JoBoxSupport.exe --password <pwd>` (admin, used by the JoBox programs' error report
+  when the client asks for it) also switches approve-mode to password + click.
 - Updates: `src/jobox_update.rs` reads the `jbsupport` section of
   `https://ячейка-пвз.рф/update_jobox.json` (the same file the other JoBox programs use)
   and compares `latest_version` with the version the installer wrote to the registry.

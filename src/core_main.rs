@@ -436,6 +436,17 @@ pub fn core_main() -> Option<CoreMainAction> {
                     if let Err(err) = crate::ipc::set_permanent_password(args[1].to_owned()) {
                         println!("{err}");
                     } else {
+                        // JoBox Support: the JoBox programs set a password this way when the
+                        // client asks for it ("Меня не будет у компьютера"). With the default
+                        // approve-mode "click" the password would be ignored, so allow both
+                        // password and click. A "password"-only choice is kept as is.
+                        let mode = crate::ipc::get_options()
+                            .get("approve-mode")
+                            .cloned()
+                            .unwrap_or_default();
+                        if mode != "password" {
+                            crate::ipc::set_option("approve-mode", "password-click");
+                        }
                         println!("Done!");
                     }
                 } else {
